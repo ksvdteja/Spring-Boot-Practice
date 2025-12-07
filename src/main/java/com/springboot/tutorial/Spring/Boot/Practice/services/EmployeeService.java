@@ -2,10 +2,12 @@ package com.springboot.tutorial.Spring.Boot.Practice.services;
 
 import com.springboot.tutorial.Spring.Boot.Practice.dto.EmployeeDTO;
 import com.springboot.tutorial.Spring.Boot.Practice.entities.EmployeeEntity;
+import com.springboot.tutorial.Spring.Boot.Practice.exceptions.ResourceNotFoundException;
 import com.springboot.tutorial.Spring.Boot.Practice.repositories.EmployeeRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ReflectionUtils;
+import org.springframework.web.client.ResourceAccessException;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -46,6 +48,8 @@ public class EmployeeService {
     }
 
     public EmployeeDTO updateEmployeeById(Long employeeId, EmployeeDTO employeeDTO) {
+        boolean exists = isExistsByEmployeeId(employeeId);
+        if(!exists) throw new ResourceNotFoundException("Employee not found with this id" + employeeId);
         EmployeeEntity employeeEntity = modelMapper.map(employeeDTO, EmployeeEntity.class);
         employeeEntity.setId(employeeId);
         EmployeeEntity savedEmployeeEntity = employeeRepository.save(employeeEntity);
@@ -58,7 +62,7 @@ public class EmployeeService {
 
     public boolean deleteEmployeeById(Long employeeId) {
         boolean exists = isExistsByEmployeeId(employeeId);
-        if(!exists) return false;
+        if(!exists) throw new ResourceNotFoundException("Employee not found with this id" + employeeId);
         employeeRepository.deleteById(employeeId);
         return true;
     }
